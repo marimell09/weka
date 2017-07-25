@@ -1,0 +1,27 @@
+@relation validator
+
+@attribute dia numeric
+@attribute class {Chuva,Sol}
+
+@data
+9,Chuva
+9,Chuva
+6,Chuva
+6,Chuva
+6,Chuva
+10,Sol
+11,Sol
+12,Sol
+13,Sol
+14,Sol
+15,Sol
+16,Sol
+17,Sol
+18,Sol
+19,Sol
+5,Chuva
+5,Chuva
+4,Chuva
+1,Chuva
+0,Chuva
+15,Chuva

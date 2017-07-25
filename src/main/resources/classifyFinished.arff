@@ -1,0 +1,20 @@
+@relation classify
+
+@attribute dia numeric
+@attribute class {Chuva,Sol}
+
+@data
+1,Chuva
+2,Chuva
+3,Chuva
+4,Chuva
+5,Chuva
+6,Chuva
+7,Chuva
+8,Chuva
+9,Chuva
+10,Sol
+11,Sol
+12,Sol
+21,Sol
+30,Sol
