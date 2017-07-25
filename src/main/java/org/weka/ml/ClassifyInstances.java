@@ -79,7 +79,7 @@ public class ClassifyInstances extends Application {
 			 }
 		 
 		 BufferedWriter writer = new BufferedWriter(
-                 new FileWriter("C:/workspace_TG/workspace_TG_eclipse/weka/weka-parte1/src/main/resources/classifyFinished.arff"));
+                 new FileWriter("C:/workspace_TG/tg_dataProject_Git/wekaProject/weka/src/main/resources/classifyFinished.arff"));
 		
 		 
 		 //ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -99,7 +99,7 @@ public class ClassifyInstances extends Application {
 		 m.setAnoModelo("2017");
 		 m.setCursoModelo("Banco de Dados");
 		 m.setSemestreModelo("1 sem");
-		 m.setNomeModelo("Teste2");
+		 m.setNomeModelo("Teste6");
 		 m.setModeloModeloString(str);
 		 
 		
@@ -173,7 +173,7 @@ public class ClassifyInstances extends Application {
 	     
 	      
 	      DatabaseLoader db = new DatabaseLoader();
-	      weka.core.SerializationHelper.write("C:/workspace_TG/workspace_TG_eclipse/weka/weka-parte1/src/main/resources/classify.model", cls);
+	      weka.core.SerializationHelper.write("C:/workspace_TG/tg_dataProject_Git/wekaProject/weka/src/main/resources/classify.model", cls);
 	      save.setInstances(classify);
 	      save.setRelationForTableName(false);
 	      save.setTableName("results");
@@ -192,13 +192,13 @@ public class ClassifyInstances extends Application {
 			
 			
 			BufferedReader readerValidator = new BufferedReader(
-		             new FileReader("C:/workspace_TG/workspace_TG_eclipse/weka/weka-parte1/src/main/resources/validator.arff"));
+		             new FileReader("C:/workspace_TG/tg_dataProject_Git/wekaProject/weka/src/main/resources/validator.arff"));
 			
 			validator = new Instances(readerValidator);
 			validator.setClassIndex(validator.numAttributes() - 1);
 			
 			BufferedReader readerClassify = new BufferedReader(
-		             new FileReader("C:/workspace_TG/workspace_TG_eclipse/weka/weka-parte1/src/main/resources/classify.arff"));
+		             new FileReader("C:/workspace_TG/tg_dataProject_Git/wekaProject/weka/src/main/resources/classify.arff"));
 			
 			classify = new Instances(readerClassify);
 			classify.setClassIndex(classify.numAttributes() - 1);
