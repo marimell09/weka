@@ -66,6 +66,7 @@ public class ClassifyInstances extends Application {
 		Evaluation eval = new Evaluation(data);
 		eval.evaluateModel(cls, validator);
 		System.out.println(eval.toSummaryString("\nResults\n======\n", false));
+		
 		System.out.println("Matrix de confusão");
 		System.out.println(eval.toMatrixString());
 		
@@ -73,10 +74,11 @@ public class ClassifyInstances extends Application {
 		System.out.println("value" + " -> " + "prediction");
 		//Predicting
 		 for (int i = 0; i < classify.numInstances(); i++) {
-			   double clsLabel = tree.classifyInstance(classify.instance(i));
+			   double clsLabel = cls.classifyInstance(classify.instance(i));
 			   classify.instance(i).setClassValue(clsLabel);
 			   System.out.println(classify.instance(i).value(0) + " -> " + classify.classAttribute().value((int) clsLabel));
 			 }
+		 
 		 
 		 BufferedWriter writer = new BufferedWriter(
                  new FileWriter("C:/workspace_TG/tg_dataProject_Git/wekaProject/weka/src/main/resources/classifyFinished.arff"));
