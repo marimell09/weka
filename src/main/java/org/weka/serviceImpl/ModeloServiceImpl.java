@@ -8,25 +8,23 @@ import org.weka.service.ModeloService;
 
 @Service("modeloService")
 public class ModeloServiceImpl implements ModeloService {
-	
-	@Autowired
-	private ModeloRepository modeloRepository;
 
-	public Modelo save(Modelo modelo){
+    @Autowired
+    private ModeloRepository modeloRepository;
 
-		Modelo modeloSearched = modeloRepository.findByNomeModelo(modelo.getNomeModelo());
-		if (modeloSearched == null){
-			modeloSearched = modeloRepository.save(modelo);
-		}
-		return modeloSearched;
-	}
-	
-	public Modelo findByNomeModelo(String nomeModelo) {
+    public Modelo save(Modelo modelo) {
 
-		return modeloRepository.findByNomeModelo(nomeModelo);
+        Modelo modeloSearched = modeloRepository.findByNomeModelo(modelo.getNomeModelo());
+        if (modeloSearched == null) {
+            modeloSearched = modeloRepository.save(modelo);
+        }
+        return modeloSearched;
+    }
 
-	}
-	
+    public Modelo findByNomeModelo(String nomeModelo) {
+
+        return modeloRepository.findByNomeModelo(nomeModelo);
+
+    }
+
 }
-
-

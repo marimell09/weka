@@ -8,22 +8,22 @@ public class UploadModel {
 
     private MultipartFile[] files;
 
-	public String getExtraField() {
-		return extraField;
-	}
+    public String getExtraField() {
+        return extraField;
+    }
 
-	public void setExtraField(String extraField) {
-		this.extraField = extraField;
-	}
+    public void setExtraField(String extraField) {
+        this.extraField = extraField;
+    }
 
-	public MultipartFile[] getFiles() {
-		return files;
-	}
+    public MultipartFile[] getFiles() {
+        return files;
+    }
 
-	public void setFiles(MultipartFile[] files) {
-		this.files = files;
-	}
+    public void setFiles(MultipartFile[] files) {
+        this.files = files;
+    }
 
-    //getters and setters
-    
+    // getters and setters
+
 }
