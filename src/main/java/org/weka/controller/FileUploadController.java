@@ -6,17 +6,15 @@ import java.io.FileOutputStream;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
-import org.weka.model.Arquivo;
-import org.weka.model.ArvoreDecisao;
-
-import weka.classifiers.Classifier;
-import weka.core.Instances;
+import org.weka.model.CaminhoArquivo;
+import org.weka.service.CaminhoArquivoService;
 
 /**
  * Handles requests for the application file upload requests
@@ -26,6 +24,9 @@ public class FileUploadController {
 
     private static final Logger logger = LoggerFactory.getLogger(FileUploadController.class);
 
+    @Autowired
+    private CaminhoArquivoService caminhoArquivoService;
+    
     /**
      * Upload single file using Spring Controller
      */
@@ -44,6 +45,12 @@ public class FileUploadController {
 
                 // Create the file on server
                 String path = dir.getAbsolutePath() + File.separator + name;
+                
+                CaminhoArquivo caminhoArquivo = new CaminhoArquivo();
+                caminhoArquivo.setNomeArquivo(name);
+                caminhoArquivo.setNomeCaminho(path);
+                caminhoArquivoService.save(caminhoArquivo);
+                
                 File serverFile = new File(path);
                 BufferedOutputStream stream = new BufferedOutputStream(new FileOutputStream(serverFile));
                 stream.write(bytes);
@@ -81,9 +88,17 @@ public class FileUploadController {
                 File dir = new File(rootPath + File.separator + "tmpFiles");
                 if (!dir.exists())
                     dir.mkdirs();
+                
 
                 // Create the file on server
-                File serverFile = new File(dir.getAbsolutePath() + File.separator + name);
+                String path = dir.getAbsolutePath() + File.separator + name;
+                
+                CaminhoArquivo caminhoArquivo = new CaminhoArquivo();
+                caminhoArquivo.setNomeArquivo(name);
+                caminhoArquivo.setNomeCaminho(path);
+                caminhoArquivoService.save(caminhoArquivo);
+                
+                File serverFile = new File(path);
                 BufferedOutputStream stream = new BufferedOutputStream(new FileOutputStream(serverFile));
                 stream.write(bytes);
                 stream.close();

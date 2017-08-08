@@ -53,7 +53,7 @@ public class ArvoreDecisao {
         return cls;
     }
 
-    public String MatrizConfusao(Instances dataModelo, Instances dataTestSet, Classifier cls) {
+    public String matrizConfusao(Instances dataModelo, Instances dataTestSet, Classifier cls) {
         String matriz = null;
         try {
             Evaluation eval = new Evaluation(dataModelo);

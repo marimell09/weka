@@ -7,7 +7,7 @@ import org.weka.repository.ModeloRepository;
 import org.weka.service.ModeloService;
 
 @Service("modeloService")
-public class ModeloServiceImpl implements ModeloService {
+public class ModeloServiceImpl implements ModeloService{
 
     @Autowired
     private ModeloRepository modeloRepository;
