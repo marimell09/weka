@@ -3,6 +3,7 @@ package org.weka.model;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.UnsupportedEncodingException;
+import java.util.Random;
 
 import weka.classifiers.Classifier;
 import weka.classifiers.Evaluation;
@@ -66,6 +67,20 @@ public class ArvoreDecisao {
 
         return matriz;
     }
+    
+    public Evaluation crossValidator(Instances dataModelo, Classifier cls) {
+        String crossResult = null;
+        Evaluation eval = null;
+        try {
+            eval = new Evaluation(dataModelo);
+            eval.crossValidateModel(cls, dataModelo, 10, new Random(10));
+            crossResult = "Estimated Accuracy: "+Double.toString(eval.pctCorrect()) + "\n" + eval.toMatrixString();
+        } catch (Exception e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        return eval;
+    }
 
     public String sumarioResultados(Instances dataModelo, Instances dataTestSet, Classifier cls, boolean complexidade) {
         Evaluation eval;
@@ -102,9 +117,10 @@ public class ArvoreDecisao {
         return dadosParaClassificar;
     }
 
-    public void setarIndexClasse(Instances dados, int numeroColuna) {
+    public Instances setarIndexClasse(Instances dados, int numeroColuna) {
         // numero da coluna iniciando em 0
         dados.setClassIndex(numeroColuna);
+        return dados;
     }
 
 }
