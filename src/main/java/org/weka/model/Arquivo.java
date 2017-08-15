@@ -7,6 +7,8 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 
+import org.springframework.web.multipart.MultipartFile;
+
 import weka.core.Instances;
 import weka.core.converters.ArffSaver;
 import weka.core.converters.CSVLoader;
@@ -70,5 +72,16 @@ public class Arquivo {
             e.printStackTrace();
         }
     }
+    
+    public String descubraExtensaoArquivo(MultipartFile file){
+        String extensao = file.getOriginalFilename().split("\\.")[1];
+        return extensao;
+    }
+    
+    public String descubraExtensaoString(String caminhoArquivo){
+        String extensao = caminhoArquivo.substring(caminhoArquivo.lastIndexOf(".") + 1);
+        return extensao;
+    }
+    
 
 }

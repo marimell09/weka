@@ -42,9 +42,13 @@ public class FileUploadController {
                 File dir = new File(rootPath + File.separator + "tmpFiles");
                 if (!dir.exists())
                     dir.mkdirs();
-
+                
+                //Extension of file
+                String extention = file.getOriginalFilename().substring(file.getOriginalFilename().lastIndexOf(".") + 1);
+                System.out.println(extention);
+                
                 // Create the file on server
-                String path = dir.getAbsolutePath() + File.separator + name;
+                String path = dir.getAbsolutePath() + File.separator + name + "." + extention;
                 
                 CaminhoArquivo caminhoArquivo = new CaminhoArquivo();
                 caminhoArquivo.setNomeArquivo(name);
@@ -89,9 +93,12 @@ public class FileUploadController {
                 if (!dir.exists())
                     dir.mkdirs();
                 
-
+                //Extension of file
+                String extention = file.getOriginalFilename().split("\\.")[1];
+                System.out.println(extention);
+                
                 // Create the file on server
-                String path = dir.getAbsolutePath() + File.separator + name;
+                String path = dir.getAbsolutePath() + File.separator + name + "." + extention;
                 
                 CaminhoArquivo caminhoArquivo = new CaminhoArquivo();
                 caminhoArquivo.setNomeArquivo(name);
@@ -111,6 +118,15 @@ public class FileUploadController {
             }
         }
         return message;
+    }
+    
+    private String getFileExtension(File file) {
+        String name = file.getName();
+        try {
+            return name.substring(name.lastIndexOf(".") + 1);
+        } catch (Exception e) {
+            return "";
+        }
     }
 
 }

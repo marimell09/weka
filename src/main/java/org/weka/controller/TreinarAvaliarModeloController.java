@@ -36,8 +36,8 @@ public class TreinarAvaliarModeloController {
     @RequestMapping(value = "/treinarAvaliarModelo/{caminhoArquivoModeloNome},{caminhoArquivoTesteNome}", method = RequestMethod.GET)
     public @ResponseBody String treinarAvaliarModelo(@PathVariable("caminhoArquivoModeloNome") String caminhoArquivoModeloNome, @PathVariable("caminhoArquivoTesteNome") String caminhoArquivoTesteNome) {
         
-        String caminhoArquivoModelo = findPath(caminhoArquivoModeloNome);
-        String caminhoArquivoTeste = findPath(caminhoArquivoTesteNome);
+        String caminhoArquivoModelo = encontrarNomeCaminho(caminhoArquivoModeloNome);
+        String caminhoArquivoTeste = encontrarNomeCaminho(caminhoArquivoTesteNome);
         
         //Pego arquivo para geração do modelo e transformo na instancia
         Arquivo arq = new Arquivo();
@@ -66,17 +66,17 @@ public class TreinarAvaliarModeloController {
      * @param caminhoArquivoTesteNome - caminho do arquivo de validação
      * @param tipoArquivo - tipo do arquivo (csv, arff)
      * */
-    @RequestMapping(value = "/avaliarModeloMatriz/{caminhoArquivoModeloNome},{caminhoArquivoTesteNome},{tipoArquivo}", method = RequestMethod.GET)
-    public @ResponseBody String avaliarModeloMatriz(@PathVariable("caminhoArquivoModeloNome") String caminhoArquivoModeloNome, @PathVariable("caminhoArquivoTesteNome") String caminhoArquivoTesteNome, @PathVariable("tipoArquivo") String tipoArquivo) {
+    @RequestMapping(value = "/avaliarModeloMatriz/{caminhoArquivoModeloNome},{caminhoArquivoTesteNome}", method = RequestMethod.GET)
+    public @ResponseBody String avaliarModeloMatriz(@PathVariable("caminhoArquivoModeloNome") String caminhoArquivoModeloNome, @PathVariable("caminhoArquivoTesteNome") String caminhoArquivoTesteNome) {
         
-        String caminhoArquivoModelo = findPath(caminhoArquivoModeloNome);
-        String caminhoArquivoTeste = findPath(caminhoArquivoTesteNome);
+        String caminhoArquivoModelo = encontrarNomeCaminho(caminhoArquivoModeloNome);
+        String caminhoArquivoTeste = encontrarNomeCaminho(caminhoArquivoTesteNome);
         
         //Pego arquivo para geração do modelo e transformo na instancia
-        Arquivo arq = new Arquivo();
-        Instances instanciaDadosModelo = defineTipoArquivo(tipoArquivo, caminhoArquivoModelo);
+        Instances instanciaDadosModelo = loadArquivo(caminhoArquivoModelo);
+        
         //Pego arquivo para teste de modelo gerado e transformo em instancia
-        Instances instanciaDadosTeste = defineTipoArquivo(tipoArquivo, caminhoArquivoTeste);
+        Instances instanciaDadosTeste = loadArquivo(caminhoArquivoTeste);
 
         //Seto classe (atributo) que será usado para classificar
         ArvoreDecisao arvore = new ArvoreDecisao();
@@ -109,7 +109,7 @@ public class TreinarAvaliarModeloController {
         
         String output = null;
         try {
-        String caminhoArquivoModelo = findPath(caminhoArquivoModeloNome);
+        String caminhoArquivoModelo = encontrarNomeCaminho(caminhoArquivoModeloNome);
         
         //Pego arquivo para geração do modelo e transformo na instancia
         Arquivo arq = new Arquivo();
@@ -143,7 +143,7 @@ public class TreinarAvaliarModeloController {
     @RequestMapping(value = "/treinarModelo/{caminhoArquivoModeloNome}", method = RequestMethod.GET)
     public @ResponseBody String treinarModelo(@PathVariable("caminhoArquivoModeloNome") String caminhoArquivoModeloNome) {
         
-        String caminhoArquivoModelo = findPath(caminhoArquivoModeloNome);
+        String caminhoArquivoModelo = encontrarNomeCaminho(caminhoArquivoModeloNome);
         
         //Pego arquivo para geração do modelo e transformo na instancia
         Arquivo arq = new Arquivo();
@@ -173,7 +173,7 @@ public class TreinarAvaliarModeloController {
     @RequestMapping(value = "/previsaoModelo/{modeloNome},{caminhoArquivoTesteNome}", method = RequestMethod.GET)
     public @ResponseBody String previsaoModelo(@PathVariable("modeloNome") String modeloNome, @PathVariable("caminhoArquivoTesteNome") String caminhoArquivoTesteNome) {
 
-        String caminhoArquivoTeste = findPath(caminhoArquivoTesteNome);
+        String caminhoArquivoTeste = encontrarNomeCaminho(caminhoArquivoTesteNome);
         
         //Pego arquivo para teste de modelo gerado e transformo em instancia
         Arquivo arq = new Arquivo();
@@ -194,7 +194,7 @@ public class TreinarAvaliarModeloController {
         return "Modelo utilizado com sucessos" + "\n" + dadosClassificados.toString();
     }
     
-    public String findPath(String name){
+    public String encontrarNomeCaminho(String name){
         CaminhoArquivo caminhoArquivo = caminhoArquivoService.findByNomeArquivo(name);
         
         if (caminhoArquivo != null){
@@ -231,6 +231,26 @@ public class TreinarAvaliarModeloController {
             instanciaDados = arq.lerArquivoCSVTransformarEmInstancias(caminhoArquivo);
         }
        return instanciaDados;
+    }
+    
+    public Instances tipoArquivo(String extensao, String caminhoArquivo){
+        Arquivo arq = new Arquivo();
+        Instances instanciaDados = null;
+        
+        if(extensao.equals("arff")){
+            instanciaDados = arq.lerArquivoTransformarEmInstancias(caminhoArquivo);
+        }
+        else if(extensao.equals("csv")){
+            instanciaDados = arq.lerArquivoCSVTransformarEmInstancias(caminhoArquivo);
+        }
+       return instanciaDados;
+    }
+
+    public Instances loadArquivo(String caminhoArquivo){
+        Arquivo arq = new Arquivo();
+        String extensaoArquivo = arq.descubraExtensaoString(caminhoArquivo);
+        Instances instanciaDados = tipoArquivo(extensaoArquivo, caminhoArquivo);
+        return instanciaDados;
     }
 
 }
