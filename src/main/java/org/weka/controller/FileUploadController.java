@@ -94,7 +94,7 @@ public class FileUploadController {
                     dir.mkdirs();
                 
                 //Extension of file
-                String extention = file.getOriginalFilename().split("\\.")[1];
+                String extention = file.getOriginalFilename().substring(file.getOriginalFilename().lastIndexOf(".") + 1);
                 System.out.println(extention);
                 
                 // Create the file on server
@@ -118,15 +118,6 @@ public class FileUploadController {
             }
         }
         return message;
-    }
-    
-    private String getFileExtension(File file) {
-        String name = file.getName();
-        try {
-            return name.substring(name.lastIndexOf(".") + 1);
-        } catch (Exception e) {
-            return "";
-        }
     }
 
 }

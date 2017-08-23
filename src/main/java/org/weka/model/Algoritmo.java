@@ -5,19 +5,22 @@ import java.io.ByteArrayOutputStream;
 import java.io.UnsupportedEncodingException;
 import java.util.Random;
 
+import org.netlib.arpack.Smout;
+
 import weka.classifiers.Classifier;
 import weka.classifiers.Evaluation;
+import weka.classifiers.bayes.NaiveBayes;
 import weka.classifiers.trees.J48;
 import weka.core.Instances;
 import weka.core.SerializationHelper;
 
-public class ArvoreDecisao {
+public class Algoritmo {
 
-    public Classifier construirModelo(Instances data) {
+    public Classifier construirModelo(Instances data, String algoritmo) {
 
         Classifier cls = null;
         try {
-            cls = new J48();
+            cls = escolherAlgoritmo(algoritmo);
             cls.buildClassifier(data);
         } catch (Exception e) {
             e.printStackTrace();
@@ -122,5 +125,15 @@ public class ArvoreDecisao {
         dados.setClassIndex(numeroColuna);
         return dados;
     }
-
+    
+    public Classifier escolherAlgoritmo(String algoritmo){
+        Classifier classificador = null;
+        if (algoritmo.equals("j48")){
+            classificador = new J48();
+        }else if (algoritmo.equals("naive")){
+            classificador = new NaiveBayes();
+        }
+        return classificador;
+    }
+    
 }

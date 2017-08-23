@@ -9,16 +9,18 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.weka.model.Arquivo;
-import org.weka.model.ArvoreDecisao;
+import org.weka.model.Algoritmo;
 import org.weka.model.CaminhoArquivo;
+import org.weka.model.Instancias;
 import org.weka.model.Modelo;
 import org.weka.service.CaminhoArquivoService;
 import org.weka.service.ModeloService;
 
 import weka.classifiers.Classifier;
+import weka.classifiers.Evaluation;
+import weka.classifiers.bayes.NaiveBayes;
 import weka.classifiers.trees.J48;
 import weka.core.Instances;
-import weka.classifiers.Evaluation;
 @Controller
 public class TreinarAvaliarModeloController {
     
@@ -33,25 +35,25 @@ public class TreinarAvaliarModeloController {
     /** 
      * Treina e avalia o modelo tendo como parametro arquivo para criação do modelo e arquivo para rodar o test set
      * */
-    @RequestMapping(value = "/treinarAvaliarModelo/{caminhoArquivoModeloNome},{caminhoArquivoTesteNome}", method = RequestMethod.GET)
-    public @ResponseBody String treinarAvaliarModelo(@PathVariable("caminhoArquivoModeloNome") String caminhoArquivoModeloNome, @PathVariable("caminhoArquivoTesteNome") String caminhoArquivoTesteNome) {
+    @RequestMapping(value = "/treinarPredirModelo/{caminhoArquivoModeloNome},{caminhoArquivoTesteNome},{algoritmo}", method = RequestMethod.GET)
+    public @ResponseBody String treinarPredirModelo(@PathVariable("caminhoArquivoModeloNome") String caminhoArquivoModeloNome, @PathVariable("caminhoArquivoTesteNome") String caminhoArquivoTesteNome, @PathVariable("algoritmo") String algoritmo) {
         
         String caminhoArquivoModelo = encontrarNomeCaminho(caminhoArquivoModeloNome);
         String caminhoArquivoTeste = encontrarNomeCaminho(caminhoArquivoTesteNome);
         
         //Pego arquivo para geração do modelo e transformo na instancia
-        Arquivo arq = new Arquivo();
-        Instances instanciaDadosModelo = arq.lerArquivoTransformarEmInstancias(caminhoArquivoModelo);
+        Instances instanciaDadosModelo = loadArquivo(caminhoArquivoModelo);
+        
         //Pego arquivo para teste de modelo gerado e transformo em instancia
-        Instances instanciaDadosTeste = arq.lerArquivoTransformarEmInstancias(caminhoArquivoTeste);
-
+        Instances instanciaDadosTeste = loadArquivo(caminhoArquivoTeste);
+        
         //Seto classe (atributo) que será usado para classificar
-        ArvoreDecisao arvore = new ArvoreDecisao();
+        Algoritmo arvore = new Algoritmo();
         arvore.setarIndexClasse(instanciaDadosModelo, instanciaDadosModelo.numAttributes() - 1);
         arvore.setarIndexClasse(instanciaDadosTeste,  instanciaDadosTeste.numAttributes() - 1);
         
         //Com a instancia gerada acima, construo um modelo
-        Classifier modelo = arvore.construirModelo(instanciaDadosModelo);
+        Classifier modelo = arvore.construirModelo(instanciaDadosModelo, algoritmo);
         
         //Faço predição dos dados inseridos baseado no modelo gerado
         Instances dadosClassificados = arvore.classificarDados(modelo, instanciaDadosTeste);
@@ -66,8 +68,8 @@ public class TreinarAvaliarModeloController {
      * @param caminhoArquivoTesteNome - caminho do arquivo de validação
      * @param tipoArquivo - tipo do arquivo (csv, arff)
      * */
-    @RequestMapping(value = "/avaliarModeloMatriz/{caminhoArquivoModeloNome},{caminhoArquivoTesteNome}", method = RequestMethod.GET)
-    public @ResponseBody String avaliarModeloMatriz(@PathVariable("caminhoArquivoModeloNome") String caminhoArquivoModeloNome, @PathVariable("caminhoArquivoTesteNome") String caminhoArquivoTesteNome) {
+    @RequestMapping(value = "/treinarAvaliarModelo/{caminhoArquivoModeloNome},{caminhoArquivoTesteNome},{algoritmo}", method = RequestMethod.GET)
+    public @ResponseBody String treinarAvaliarModelo(@PathVariable("caminhoArquivoModeloNome") String caminhoArquivoModeloNome, @PathVariable("caminhoArquivoTesteNome") String caminhoArquivoTesteNome, @PathVariable("algoritmo") String algoritmo) {
         
         String caminhoArquivoModelo = encontrarNomeCaminho(caminhoArquivoModeloNome);
         String caminhoArquivoTeste = encontrarNomeCaminho(caminhoArquivoTesteNome);
@@ -79,12 +81,12 @@ public class TreinarAvaliarModeloController {
         Instances instanciaDadosTeste = loadArquivo(caminhoArquivoTeste);
 
         //Seto classe (atributo) que será usado para classificar
-        ArvoreDecisao arvore = new ArvoreDecisao();
+        Algoritmo arvore = new Algoritmo();
         arvore.setarIndexClasse(instanciaDadosModelo, instanciaDadosModelo.numAttributes() - 1);
         arvore.setarIndexClasse(instanciaDadosTeste,  instanciaDadosTeste.numAttributes() - 1);
         
         //Com a instancia gerada acima, construo um modelo
-        Classifier modelo = arvore.construirModelo(instanciaDadosModelo);
+        Classifier modelo = arvore.construirModelo(instanciaDadosModelo, algoritmo);
         
         String resultados = arvore.sumarioResultados(instanciaDadosModelo, instanciaDadosTeste, modelo, false);
         
@@ -104,29 +106,35 @@ public class TreinarAvaliarModeloController {
      * @param caminhoArquivoModeloNome - caminho do arquivo de modelo
      * @param tipoArquivo - tipo do arquivo (csv, arff)
      * */
-    @RequestMapping(value = "/avaliarModeloMatrizCrossValidation/{caminhoArquivoModeloNome},{tipoArquivo}", method = RequestMethod.GET)
-    public @ResponseBody String avaliarModeloMatrizCrossValidation(@PathVariable("caminhoArquivoModeloNome") String caminhoArquivoModeloNome, @PathVariable("tipoArquivo") String tipoArquivo) {
+    @RequestMapping(value = "/treinarAvaliarModeloCrossValidation/{caminhoArquivoModeloNome},{algoritmo}", method = RequestMethod.GET)
+    public @ResponseBody String treinarAvaliarModeloCrossValidation(@PathVariable("caminhoArquivoModeloNome") String caminhoArquivoModeloNome, @PathVariable("algoritmo") String algoritmo) {
         
         String output = null;
         try {
         String caminhoArquivoModelo = encontrarNomeCaminho(caminhoArquivoModeloNome);
         
         //Pego arquivo para geração do modelo e transformo na instancia
-        Arquivo arq = new Arquivo();
-        Instances instanciaDadosModelo = defineTipoArquivo(tipoArquivo, caminhoArquivoModelo);
+        Instances instanciaDadosModelo = loadArquivo(caminhoArquivoModelo);
         
         //Seto classe (atributo) que será usado para classificar
-        ArvoreDecisao arvore = new ArvoreDecisao();
-        instanciaDadosModelo = arvore.setarIndexClasse(instanciaDadosModelo, instanciaDadosModelo.numAttributes() - 1);
+        Algoritmo alg = new Algoritmo();
+        instanciaDadosModelo = alg.setarIndexClasse(instanciaDadosModelo, instanciaDadosModelo.numAttributes() - 1);
+        
+        Instancias instancias = new Instancias();
+        instanciaDadosModelo = instancias.aplicarSmote(instanciaDadosModelo);
+        String balanceamentoAtributos = instancias.getBalanceamentoAtributos(instanciaDadosModelo);
         
         //Com a instancia gerada acima, construo um modelo
-        Classifier modelo = arvore.construirModelo(instanciaDadosModelo);
+        Classifier modelo = alg.construirModelo(instanciaDadosModelo, algoritmo);
         
-        Evaluation crossResult = arvore.crossValidator(instanciaDadosModelo, new J48());
+        Evaluation crossResult = alg.crossValidator(instanciaDadosModelo, alg.escolherAlgoritmo(algoritmo));
         
         String modeloString = modelo.toString();
         
-            output = "Dados de avaliação com cross validation:" + "\n" + "Modelo: " + "\n" + modeloString + "\n" + crossResult.toMatrixString() + "\nResultados: \n" + crossResult.toSummaryString();
+            output = "Dados de avaliação com cross validation:" + "\n" + "Modelo: " + "\n" + modeloString + "\n";
+            output = output + crossResult.toMatrixString() + "\nResultados: \n" + crossResult.toSummaryString();
+            output = output + balanceamentoAtributos + "\n";
+            output = output + "Porcentagem de balanceamento: " + instancias.getPorcentagem() + "%\n";
         } catch (Exception e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
@@ -140,26 +148,25 @@ public class TreinarAvaliarModeloController {
      * Output do mensagem de sucesso
      * @param caminhoArquivoModeloNome - caminho do arquivo de modelo
      * */
-    @RequestMapping(value = "/treinarModelo/{caminhoArquivoModeloNome}", method = RequestMethod.GET)
-    public @ResponseBody String treinarModelo(@PathVariable("caminhoArquivoModeloNome") String caminhoArquivoModeloNome) {
+    @RequestMapping(value = "/treinarModelo/{caminhoArquivoModeloNome},{algoritmo}", method = RequestMethod.GET)
+    public @ResponseBody String treinarModelo(@PathVariable("caminhoArquivoModeloNome") String caminhoArquivoModeloNome, @PathVariable("algoritmo") String algoritmo) {
         
         String caminhoArquivoModelo = encontrarNomeCaminho(caminhoArquivoModeloNome);
         
         //Pego arquivo para geração do modelo e transformo na instancia
-        Arquivo arq = new Arquivo();
-        Instances instanciaDadosModelo = arq.lerArquivoTransformarEmInstancias(caminhoArquivoModelo);
-
-        ArvoreDecisao arvore = new ArvoreDecisao();
+        Instances instanciaDadosModelo = loadArquivo(caminhoArquivoModelo);
+        
+        Algoritmo arvore = new Algoritmo();
         
         //Seto classe (atributo) que será usado para classificar
         arvore.setarIndexClasse(instanciaDadosModelo, instanciaDadosModelo.numAttributes() - 1);
         
         //Com a instancia gerada acima, construo um modelo
-        Classifier modelo = arvore.construirModelo(instanciaDadosModelo);
+        Classifier modelo = arvore.construirModelo(instanciaDadosModelo, algoritmo);
         
         String modeloString = arvore.classificadorParaModeloString(modelo);
         
-        salvarModelo("teste7", "teste2", "teste3", "teste4", modeloString);
+        salvarModelo("teste", "teste", "teste", "teste", modeloString);
         
         return "Modelo treinado com sucessos";
     }
@@ -170,17 +177,16 @@ public class TreinarAvaliarModeloController {
      * @param modeloNome - nome do modelo gravado no banco
      * @param caminhoArquivoTesteNome - caminho do arquivo de validação
      * */
-    @RequestMapping(value = "/previsaoModelo/{modeloNome},{caminhoArquivoTesteNome}", method = RequestMethod.GET)
-    public @ResponseBody String previsaoModelo(@PathVariable("modeloNome") String modeloNome, @PathVariable("caminhoArquivoTesteNome") String caminhoArquivoTesteNome) {
+    @RequestMapping(value = "/predirModelo/{modeloNome},{caminhoArquivoTesteNome}", method = RequestMethod.GET)
+    public @ResponseBody String predirModelo(@PathVariable("modeloNome") String modeloNome, @PathVariable("caminhoArquivoTesteNome") String caminhoArquivoTesteNome) {
 
         String caminhoArquivoTeste = encontrarNomeCaminho(caminhoArquivoTesteNome);
         
         //Pego arquivo para teste de modelo gerado e transformo em instancia
-        Arquivo arq = new Arquivo();
-        Instances instanciaDadosTeste = arq.lerArquivoTransformarEmInstancias(caminhoArquivoTeste);
+        Instances instanciaDadosTeste = loadArquivo(caminhoArquivoTeste);
 
         //Seto classe (atributo) que será usado para classificar
-        ArvoreDecisao arvore = new ArvoreDecisao();
+        Algoritmo arvore = new Algoritmo();
         arvore.setarIndexClasse(instanciaDadosTeste,  instanciaDadosTeste.numAttributes() - 1);
         
         String modeloString = encontrarStringModelo(modeloNome);
@@ -220,20 +226,7 @@ public class TreinarAvaliarModeloController {
         return m.getModeloModeloString();
     }
     
-    public Instances defineTipoArquivo(String tipoArquivo, String caminhoArquivo){
-        Arquivo arq = new Arquivo();
-        Instances instanciaDados = null;
-        
-        if(tipoArquivo.equals("arff")){
-            instanciaDados = arq.lerArquivoTransformarEmInstancias(caminhoArquivo);
-        }
-        else if(tipoArquivo.equals("csv")){
-            instanciaDados = arq.lerArquivoCSVTransformarEmInstancias(caminhoArquivo);
-        }
-       return instanciaDados;
-    }
-    
-    public Instances tipoArquivo(String extensao, String caminhoArquivo){
+    public Instances loadArquivoPorTipo(String extensao, String caminhoArquivo){
         Arquivo arq = new Arquivo();
         Instances instanciaDados = null;
         
@@ -249,8 +242,8 @@ public class TreinarAvaliarModeloController {
     public Instances loadArquivo(String caminhoArquivo){
         Arquivo arq = new Arquivo();
         String extensaoArquivo = arq.descubraExtensaoString(caminhoArquivo);
-        Instances instanciaDados = tipoArquivo(extensaoArquivo, caminhoArquivo);
+        Instances instanciaDados = loadArquivoPorTipo(extensaoArquivo, caminhoArquivo);
         return instanciaDados;
     }
-
+    
 }

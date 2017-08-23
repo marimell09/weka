@@ -9,9 +9,12 @@ import java.io.IOException;
 
 import org.springframework.web.multipart.MultipartFile;
 
+import weka.core.Instance;
 import weka.core.Instances;
 import weka.core.converters.ArffSaver;
 import weka.core.converters.CSVLoader;
+import weka.filters.Filter;
+import weka.filters.supervised.instance.SMOTE;
 
 public class Arquivo {
 
@@ -82,6 +85,4 @@ public class Arquivo {
         String extensao = caminhoArquivo.substring(caminhoArquivo.lastIndexOf(".") + 1);
         return extensao;
     }
-    
-
 }
