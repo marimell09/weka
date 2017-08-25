@@ -99,10 +99,9 @@ public class Algoritmo {
         return resultados;
     }
 
-    public Instances classificarDados(Classifier modeloGerado, Instances dadosParaClassificar) {
+    public Instances classificarDados(Classifier modeloGerado, Instances dadosParaClassificar) throws Exception {
 
         // System.out.println("value" + " -> " + "prediction");
-        try {
             for (int i = 0; i < dadosParaClassificar.numInstances(); i++) {
                 double clsLabel = modeloGerado.classifyInstance(dadosParaClassificar.instance(i));
                 dadosParaClassificar.instance(i).setClassValue(clsLabel);
@@ -111,12 +110,6 @@ public class Algoritmo {
                 // + " -> " + dadosParaClassificar.classAttribute().value((int)
                 // clsLabel));
             }
-
-        } catch (Exception e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-
         return dadosParaClassificar;
     }
 

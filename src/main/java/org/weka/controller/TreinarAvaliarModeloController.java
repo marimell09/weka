@@ -33,7 +33,13 @@ public class TreinarAvaliarModeloController {
     private ModeloService modeloService;
 
     /** 
-     * Treina e avalia o modelo tendo como parametro arquivo para criação do modelo e arquivo para rodar o test set
+     * Treina e avalia o modelo tendo como parametro arquivo para criação do modelo e arquivo para rodar a predicao.
+     * Arquivo de modelo deve conter na ultima coluna o atributo classificador (situacao do curso)
+     * Arquivo de predicao deve conter na ultima coluna interrogacoes (situacao do curso a ser prevista)
+     * @param caminhoArquivoModeloNome - nome do arquivo de modelo
+     * @param caminhoArquivoTesteNome - nome do arquivo que sera realizada a predicao
+     * @param algoritmo - algoritmo para criar o modelo (j48 ou naive bayes)
+     * @return Output do mensagem de sucesso e tuplas do arquivo com a previsão
      * */
     @RequestMapping(value = "/treinarPredirModelo/{caminhoArquivoModeloNome},{caminhoArquivoTesteNome},{algoritmo}", method = RequestMethod.GET)
     public @ResponseBody String treinarPredirModelo(@PathVariable("caminhoArquivoModeloNome") String caminhoArquivoModeloNome, @PathVariable("caminhoArquivoTesteNome") String caminhoArquivoTesteNome, @PathVariable("algoritmo") String algoritmo) {
@@ -52,21 +58,36 @@ public class TreinarAvaliarModeloController {
         arvore.setarIndexClasse(instanciaDadosModelo, instanciaDadosModelo.numAttributes() - 1);
         arvore.setarIndexClasse(instanciaDadosTeste,  instanciaDadosTeste.numAttributes() - 1);
         
+        //Balanceamento de dados com SMOTE
+        Instancias instancias = new Instancias();
+        instanciaDadosModelo = instancias.aplicarSmote(instanciaDadosModelo);
+        String balanceamentoAtributos = instancias.getBalanceamentoAtributos(instanciaDadosModelo);
+        
         //Com a instancia gerada acima, construo um modelo
         Classifier modelo = arvore.construirModelo(instanciaDadosModelo, algoritmo);
         
         //Faço predição dos dados inseridos baseado no modelo gerado
-        Instances dadosClassificados = arvore.classificarDados(modelo, instanciaDadosTeste);
+        Instances dadosClassificados = null;
+        try {
+            dadosClassificados = arvore.classificarDados(modelo, instanciaDadosTeste);
+            System.out.println("passou");
+        } catch (Exception e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
         
-        return "Dados de previsão" + "\n" + dadosClassificados.toString();
+        return "Dados de previsao \n" + dadosClassificados.toString();
     }
     
+    
     /** 
-     * Treina e avalia o modelo tendo como parametro arquivo para criação do modelo e arquivo para rodar o test set
-     * Faz output do modelo gerado, da matriz de confusão e do resultado da avaliação
-     * @param caminhoArquivoModeloNome - caminho do arquivo de modelo
-     * @param caminhoArquivoTesteNome - caminho do arquivo de validação
-     * @param tipoArquivo - tipo do arquivo (csv, arff)
+     *  Treina e avalia o modelo tendo como parametro arquivo para criação do modelo e arquivo para rodar o test set
+     * Arquivo de modelo e de test set devem conter na ultima coluna o atributo classificador (situacao do curso)
+     * Arquivo de predicao deve conter na ultima coluna interrogacoes (situacao do curso a ser prevista)
+     * @param caminhoArquivoModeloNome - nome do arquivo de modelo
+     * @param caminhoArquivoTesteNome - nome do arquivo de teste
+     * @param algoritmo - algoritmo para criar o modelo (j48 ou naive bayes)
+     * @return Dados de avaliacao, resultados da avaliacao e matriz de confusao
      * */
     @RequestMapping(value = "/treinarAvaliarModelo/{caminhoArquivoModeloNome},{caminhoArquivoTesteNome},{algoritmo}", method = RequestMethod.GET)
     public @ResponseBody String treinarAvaliarModelo(@PathVariable("caminhoArquivoModeloNome") String caminhoArquivoModeloNome, @PathVariable("caminhoArquivoTesteNome") String caminhoArquivoTesteNome, @PathVariable("algoritmo") String algoritmo) {
@@ -85,6 +106,11 @@ public class TreinarAvaliarModeloController {
         arvore.setarIndexClasse(instanciaDadosModelo, instanciaDadosModelo.numAttributes() - 1);
         arvore.setarIndexClasse(instanciaDadosTeste,  instanciaDadosTeste.numAttributes() - 1);
         
+        //Balanceamento de dados com SMOTE
+        Instancias instancias = new Instancias();
+        instanciaDadosModelo = instancias.aplicarSmote(instanciaDadosModelo);
+        String balanceamentoAtributos = instancias.getBalanceamentoAtributos(instanciaDadosModelo);
+        
         //Com a instancia gerada acima, construo um modelo
         Classifier modelo = arvore.construirModelo(instanciaDadosModelo, algoritmo);
         
@@ -94,17 +120,20 @@ public class TreinarAvaliarModeloController {
         
         String modeloString = modelo.toString();
         
-        String output = "Dados de avaliação com validador:" + "\n" + modeloString +"\n" + resultados + "\n" + matriz;
+        String output = "Dados de avaliacao com validador:" + "\n" + modeloString +"\n" + resultados + "\n" + matriz;
         
         return output;
     }
     
     /** 
      * Treina e avalia o modelo tendo como parametro arquivo para criação do modelo, mas ao invés de colocar um
-     * arquivo de test set, roda cross fold para avaliação do modelo construindo.
-     * Output do modelo gerado, da matriz de confusão e dos resultados da avaliação
-     * @param caminhoArquivoModeloNome - caminho do arquivo de modelo
-     * @param tipoArquivo - tipo do arquivo (csv, arff)
+     * arquivo de test set, roda cross fold para avaliação do modelo construido.
+     * Arquivo de modelo deve conter na ultima coluna o atributo classificador (situacao do curso)
+     * @param caminhoArquivoModeloNome - nome do arquivo de modelo
+     * @param algoritmo - algoritmo para criar o modelo (j48 ou naive bayes)
+     * @return Output da decisão de avaliacao do algoritmo, do modelo gerado, da matriz de confusão, dos resultados da avaliação, 
+     * da quantidade de atributos para cada valor de classificador (em curso, cancelado) depois do balanceamento do modelo
+     * e da porcentagem de balanceamento usada para criação do modelo
      * */
     @RequestMapping(value = "/treinarAvaliarModeloCrossValidation/{caminhoArquivoModeloNome},{algoritmo}", method = RequestMethod.GET)
     public @ResponseBody String treinarAvaliarModeloCrossValidation(@PathVariable("caminhoArquivoModeloNome") String caminhoArquivoModeloNome, @PathVariable("algoritmo") String algoritmo) {
@@ -120,6 +149,7 @@ public class TreinarAvaliarModeloController {
         Algoritmo alg = new Algoritmo();
         instanciaDadosModelo = alg.setarIndexClasse(instanciaDadosModelo, instanciaDadosModelo.numAttributes() - 1);
         
+        //Balanceamento de dados com SMOTE
         Instancias instancias = new Instancias();
         instanciaDadosModelo = instancias.aplicarSmote(instanciaDadosModelo);
         String balanceamentoAtributos = instancias.getBalanceamentoAtributos(instanciaDadosModelo);
@@ -131,7 +161,7 @@ public class TreinarAvaliarModeloController {
         
         String modeloString = modelo.toString();
         
-            output = "Dados de avaliação com cross validation:" + "\n" + "Modelo: " + "\n" + modeloString + "\n";
+            output = "Dados de avaliacao com cross validation:" + "\n" + "Modelo: " + "\n" + modeloString + "\n";
             output = output + crossResult.toMatrixString() + "\nResultados: \n" + crossResult.toSummaryString();
             output = output + balanceamentoAtributos + "\n";
             output = output + "Porcentagem de balanceamento: " + instancias.getPorcentagem() + "%\n";
@@ -144,12 +174,15 @@ public class TreinarAvaliarModeloController {
     }
     
     /** 
-     * Treina o modelo tendo como parametro arquivo para criação do modelo
-     * Output do mensagem de sucesso
-     * @param caminhoArquivoModeloNome - caminho do arquivo de modelo
+     * Treina o modelo tendo como parametro arquivo para criação do modelo, do tipo de algoritmo e o nome do modelo.
+     * Arquivo de modelo deve conter na ultima coluna o atributo classificador (situacao do curso).
+     * @param caminhoArquivoModeloNome - nome do arquivo de modelo
+     * @param algoritmo - algoritmo para criar o modelo (j48 ou naive bayes)
+     * @param nomeModelo - nome do modelo a ser gravado no banco para posterior utilizacao
+     * @return Output do mensagem de sucesso
      * */
-    @RequestMapping(value = "/treinarModelo/{caminhoArquivoModeloNome},{algoritmo}", method = RequestMethod.GET)
-    public @ResponseBody String treinarModelo(@PathVariable("caminhoArquivoModeloNome") String caminhoArquivoModeloNome, @PathVariable("algoritmo") String algoritmo) {
+    @RequestMapping(value = "/treinarModelo/{caminhoArquivoModeloNome},{algoritmo},{nomeModelo}", method = RequestMethod.GET)
+    public @ResponseBody String treinarModelo(@PathVariable("caminhoArquivoModeloNome") String caminhoArquivoModeloNome, @PathVariable("algoritmo") String algoritmo, @PathVariable("nomeModelo") String nomeModelo) {
         
         String caminhoArquivoModelo = encontrarNomeCaminho(caminhoArquivoModeloNome);
         
@@ -161,21 +194,28 @@ public class TreinarAvaliarModeloController {
         //Seto classe (atributo) que será usado para classificar
         arvore.setarIndexClasse(instanciaDadosModelo, instanciaDadosModelo.numAttributes() - 1);
         
+        //Balanceamento de dados com SMOTE
+        Instancias instancias = new Instancias();
+        instanciaDadosModelo = instancias.aplicarSmote(instanciaDadosModelo);
+        String balanceamentoAtributos = instancias.getBalanceamentoAtributos(instanciaDadosModelo);
+        
         //Com a instancia gerada acima, construo um modelo
         Classifier modelo = arvore.construirModelo(instanciaDadosModelo, algoritmo);
         
         String modeloString = arvore.classificadorParaModeloString(modelo);
         
-        salvarModelo("teste", "teste", "teste", "teste", modeloString);
+        salvarModelo(nomeModelo, "teste", "teste", "teste", modeloString);
         
-        return "Modelo treinado com sucessos";
+        return "Modelo treinado com sucessos: " + nomeModelo;
     }
+    
     
     /** 
      * Realiza previsão do modelo gerado, utilizando como parametro arquivo onde tuplas serão geradas com previsão
-     * Output do mensagem de sucesso e tuplas do arquivo com a previsão
+     * Arquivo de predicao deve conter na ultima coluna interrogacoes (situacao do curso a ser prevista)
      * @param modeloNome - nome do modelo gravado no banco
-     * @param caminhoArquivoTesteNome - caminho do arquivo de validação
+     * @param caminhoArquivoTesteNome - nome do arquivo que sera realizada a predicao
+     * @return Output do mensagem de sucesso e tuplas do arquivo com a previsão
      * */
     @RequestMapping(value = "/predirModelo/{modeloNome},{caminhoArquivoTesteNome}", method = RequestMethod.GET)
     public @ResponseBody String predirModelo(@PathVariable("modeloNome") String modeloNome, @PathVariable("caminhoArquivoTesteNome") String caminhoArquivoTesteNome) {
@@ -195,13 +235,26 @@ public class TreinarAvaliarModeloController {
         Classifier modeloClassificador = arvore.modeloStringParaClassificador(modeloString);
         
         //Faço predição dos dados inseridos baseado no modelo gerado
-        Instances dadosClassificados = arvore.classificarDados(modeloClassificador, instanciaDadosTeste);
+        Instances dadosClassificados = null;
+        try {
+            dadosClassificados = arvore.classificarDados(modeloClassificador, instanciaDadosTeste);
+        } catch (Exception e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
         
-        return "Modelo utilizado com sucessos" + "\n" + dadosClassificados.toString();
+        return "Modelo utilizado com sucessos!\nDados de previsao:" + "\n" + dadosClassificados.toString();
     }
     
-    public String encontrarNomeCaminho(String name){
-        CaminhoArquivo caminhoArquivo = caminhoArquivoService.findByNomeArquivo(name);
+    /** 
+     * Método utilizado para encontrar o nome do caminho do arquivo (path)
+     * Servico do Arquivo utilizado
+     * @param nomeArquivo - nome do arquivo ao qual o caminho será retornado
+     * @return Caso arquivo encontrado, retorna-se o nome do caminho,
+     * caso nao encontrado, retorna-se nulo
+     * */
+    public String encontrarNomeCaminho(String nomeArquivo){
+        CaminhoArquivo caminhoArquivo = caminhoArquivoService.findByNomeArquivo(nomeArquivo);
         
         if (caminhoArquivo != null){
             return caminhoArquivo.getNomeCaminho();
@@ -209,6 +262,15 @@ public class TreinarAvaliarModeloController {
         return null;
     }
     
+    /** 
+     * Método para salvar modelo utilizando servico do modelo
+     * Servico do Modelo utilizado
+     * @param nomeModelo - nome do modelo a ser gravado
+     * @param anoModelo - ano do modelo a ser gravado
+     * @param cursoModelo - curso do modelo a ser gravado
+     * @param semestreModelo - semestre do modelo a ser gravado
+     * @param modelo - modeloString do modelo a ser gravado (string gerada do modelo treinado)
+     * */
     public void salvarModelo(String nomeModelo, String anoModelo, String cursoModelo, String semestreModelo, String modeloString){
         
         Modelo salvarModelo = new Modelo();
@@ -221,17 +283,29 @@ public class TreinarAvaliarModeloController {
         modeloService.save(salvarModelo);
     }
     
+    /** 
+     * Método para encontrar a string gerada do modelo treinado no banco
+     * Servico do Modelo utilizado
+     * @param nomeModelo - nome do modelo a ser gravado
+     * @return string do modelo treinado
+     * */
     public String encontrarStringModelo(String nomeModelo){
         Modelo m = modeloService.findByNomeModelo(nomeModelo);
         return m.getModeloModeloString();
     }
     
-    public Instances loadArquivoPorTipo(String extensao, String caminhoArquivo){
+    /** 
+     * Método para carregar arquivo por tipo. Possibilita carregar arquivos arff e csv e transforma-los em instancias.
+     * @param extensao - extensao do arquivo, utilizada para chamar metodos especificos de carregamento
+     * @param caminhoArquivo - nome do caminho do arquivo (path)
+     * @return instanciaDados - instancia de dados carregada
+     * */
+    public Instances lerArquivoTipoTransformarEmInstancia(String extensao, String caminhoArquivo){
         Arquivo arq = new Arquivo();
         Instances instanciaDados = null;
         
         if(extensao.equals("arff")){
-            instanciaDados = arq.lerArquivoTransformarEmInstancias(caminhoArquivo);
+            instanciaDados = arq.lerArquivoArffTransformarEmInstancias(caminhoArquivo);
         }
         else if(extensao.equals("csv")){
             instanciaDados = arq.lerArquivoCSVTransformarEmInstancias(caminhoArquivo);
@@ -239,10 +313,15 @@ public class TreinarAvaliarModeloController {
        return instanciaDados;
     }
 
+    /** 
+     * Método chama carregador de arquivo por tipo depois de descobrir o tipo da extensao do arquivo
+     * @param caminhoArquivo - nome do caminho do arquivo (path)
+     * @return instanciaDados - instancia de dados carregada
+     * */
     public Instances loadArquivo(String caminhoArquivo){
         Arquivo arq = new Arquivo();
         String extensaoArquivo = arq.descubraExtensaoString(caminhoArquivo);
-        Instances instanciaDados = loadArquivoPorTipo(extensaoArquivo, caminhoArquivo);
+        Instances instanciaDados = lerArquivoTipoTransformarEmInstancia(extensaoArquivo, caminhoArquivo);
         return instanciaDados;
     }
     

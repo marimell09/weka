@@ -18,9 +18,8 @@ import weka.filters.supervised.instance.SMOTE;
 
 public class Arquivo {
 
-    public Instances lerArquivoTransformarEmInstancias(String caminho) {
+    public Instances lerArquivoArffTransformarEmInstancias(String caminho) {
         Instances instanciaDados = null;
-
         try {
             BufferedReader readerValidator = new BufferedReader(new FileReader(caminho));
             instanciaDados = new Instances(readerValidator);
