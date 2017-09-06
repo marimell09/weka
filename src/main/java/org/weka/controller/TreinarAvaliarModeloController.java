@@ -182,7 +182,8 @@ public class TreinarAvaliarModeloController {
      * @return Output do mensagem de sucesso
      * */
     @RequestMapping(value = "/treinarModelo/{caminhoArquivoModeloNome},{algoritmo},{nomeModelo}", method = RequestMethod.GET)
-    public @ResponseBody String treinarModelo(@PathVariable("caminhoArquivoModeloNome") String caminhoArquivoModeloNome, @PathVariable("algoritmo") String algoritmo, @PathVariable("nomeModelo") String nomeModelo) {
+    public @ResponseBody String treinarModelo(@PathVariable("caminhoArquivoModeloNome") String caminhoArquivoModeloNome, 
+            @PathVariable("algoritmo") String algoritmo, @PathVariable("nomeModelo") String nomeModelo) {
         
         String caminhoArquivoModelo = encontrarNomeCaminho(caminhoArquivoModeloNome);
         
@@ -218,7 +219,8 @@ public class TreinarAvaliarModeloController {
      * @return Output do mensagem de sucesso e tuplas do arquivo com a previsão
      * */
     @RequestMapping(value = "/predirModelo/{modeloNome},{caminhoArquivoTesteNome}", method = RequestMethod.GET)
-    public @ResponseBody String predirModelo(@PathVariable("modeloNome") String modeloNome, @PathVariable("caminhoArquivoTesteNome") String caminhoArquivoTesteNome) {
+    public @ResponseBody String predirModelo(@PathVariable("modeloNome") String modeloNome, 
+            @PathVariable("caminhoArquivoTesteNome") String caminhoArquivoTesteNome) {
 
         String caminhoArquivoTeste = encontrarNomeCaminho(caminhoArquivoTesteNome);
         

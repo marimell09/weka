@@ -16,6 +16,12 @@ import weka.core.SerializationHelper;
 
 public class Algoritmo {
 
+    /**
+     * Método que constrói o modelo, dada uma instância de dados e o algoritmo de escolha
+     * @param data - instancia dos dados
+     * @param algoritmo - algoritmo escolhido (j48, naive)
+     * @return tarefa de classificação de construção do modelo
+     */
     public Classifier construirModelo(Instances data, String algoritmo) {
 
         Classifier cls = null;
@@ -119,6 +125,11 @@ public class Algoritmo {
         return dados;
     }
     
+    /**
+     * Método que inicializa o algoritmo que será utilizado por outros métodos
+     * @param algoritmo - algoritmo escolhido pelo usuário (j48, naive)
+     * @return algoritmo classificador instanciado
+     */
     public Classifier escolherAlgoritmo(String algoritmo){
         Classifier classificador = null;
         if (algoritmo.equals("j48")){
